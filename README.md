@@ -8,7 +8,15 @@ The script just requires python3 and a couple of additional packages which can b
 * pip install paho-mqtt
 
 ## MQTT target data format
-The target data is delivered as little-endian binary data with no packing. The first byte is the target data format byte and will be zero for the current format. This byte will always be present and the packet ends there if no targets are present for this frame. If targets are present, the data continues with 15 bytes per target, packed as follows:
+The target data is delivered as little-endian binary data with no packing. The first byte is the target data format byte. This byte will always be present.
+If packet type is >=1, the next 8 bytes are timestamp (type 0 contained no timestamp). This is the number of milliseconds that have elapsed since 1 Jan 1970 (Unix Epoch time).
+
+| DataType | Description                                            |
+| -------- | ------------------------------------------------------ |
+| uint8    | message type                                           |
+| uint64   | timestamp (milliseconds), present since message type 1 |
+
+The packet ends here if no targets are present for this frame. If targets are present, the data continues with 15 bytes per target, packed as follows:
 
 | DataType | Description                |
 | -------- | -------------------------- |

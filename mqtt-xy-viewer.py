@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from threading import Lock
 import struct
-import time
+import datetime
 
 # update the lines below to point to your MQTT broker and topic
 broker_address = "127.0.0.1"
@@ -34,14 +34,22 @@ plt.grid()
 
 # MQTT message-in callback function
 def on_message(client, userdata, message):
-  # first byte of message is "type"- we only support type 0, so ignore anything else
-  if message.payload[0] != 0:
+  # first byte of message is "type"- we only support types 0 and 1, so ignore anything else
+  messageType = message.payload[0]
+  if messageType != 0 and messageType != 1:
     print("unknown target format: " + str(message.payload))
     return
+
   # calculate number of targets in message @ 15 bytes per target
   sizeofTarget = 15
   numTargets = int((len(message.payload) - 1) / sizeofTarget)
   offset = 1
+  if messageType == 1:
+    # next 8 bytes are timestamp (messageType 1)
+    timestamp, = struct.unpack_from('<Q', message.payload, offset)
+    dt = datetime.datetime.fromtimestamp(timestamp / 1000.0)
+    print("timestamp: ", dt)
+    offset = offset + 8
   lock.acquire()
   x_data.clear()
   y_data.clear()
